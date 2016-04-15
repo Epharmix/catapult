@@ -22,8 +22,12 @@ Catapult requires both disque and redis to work.
 ### Installation
 
 ```
-go get github.com/evanhuang8/catapult
+go get github.com/Epharmix/catapult
 ```
+
+### Documentation
+
+[View Documentation](https://godoc.org/github.com/bandwidthcom/go-bandwidth)
 
 ### Usage
 
@@ -31,7 +35,7 @@ First of, you will want to instantiate a catapult instance:
 
 ```go
 import (
-  "github.com/evanhuang8/catapult"
+  "github.com/Epharmix/catapult"
 )
 
 dOptions := &DisqueConnectOptions{
