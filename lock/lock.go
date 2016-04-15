@@ -131,7 +131,6 @@ func (l *Lock) Release() {
 	// Signal auto renew to stop
 	if l.AutoRenew {
 		l.ARControl <- LockARCommandStop
-		_ = <-l.ARResult
 	}
 	// Pick up the internal mutext
 	l.mutex.Lock()
@@ -167,6 +166,10 @@ func (l *Lock) autoRenew() {
 			// Sleep till next renewal time
 			sleepDuration := time.Duration(int64(float64(l.Duration) * 0.5))
 			time.Sleep(sleepDuration)
+			// After wake up, check if lock is released
+			if l.value == "" {
+				return
+			}
 			// Extend lock
 			result, err := l.extend(l.Duration)
 			// If failed, panic so that the upstream function knows to stop

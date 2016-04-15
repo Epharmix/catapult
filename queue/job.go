@@ -10,7 +10,10 @@ import (
 )
 
 // JobTimeout is the default job timeout
-var JobTimeout = "2s"
+var JobTimeout = "5s"
+
+// FetchTimeout is the default fetch timeout
+var FetchTimeout = "10s"
 
 // Job is the job struct
 type Job struct {
@@ -56,7 +59,7 @@ func AddJob(client *disque.DisquePool, queueName string, body string, ETA time.T
 			UpdatedAt: now,
 		},
 	)
-	id, err := addJob(client, queueName, string(data), timeout, &_options)
+	id, err := addJob(client, nil, queueName, string(data), timeout, &_options)
 	if err != nil {
 		return
 	}
@@ -68,7 +71,7 @@ func AddJob(client *disque.DisquePool, queueName string, body string, ETA time.T
 // GetJob gets a job from the queue using the id
 func GetJob(client *disque.DisquePool, id string) (job *Job, err error) {
 	// Get the job details
-	details, err := getJob(client, id)
+	details, err := getJob(client, nil, id)
 	if err != nil {
 		if err == redis.ErrNil {
 			err = nil
@@ -82,7 +85,42 @@ func GetJob(client *disque.DisquePool, id string) (job *Job, err error) {
 
 // RemoveJob removes a job from the queue using the id
 func RemoveJob(client *disque.DisquePool, id string) (err error) {
-	err = removeJob(client, id)
+	err = removeJob(client, nil, id)
+	return
+}
+
+// FetchJobs gets jobs from the queue that are due for processing
+func FetchJobs(client *disque.DisquePool, queueName string, n int) (jobs []*Job, err error) {
+	jobs = make([]*Job, 0)
+	// Fetch jobs from queue
+	timeout, _ := time.ParseDuration(FetchTimeout)
+	details, err := fetchJobs(client, nil, queueName, n, timeout)
+	if err != nil {
+		return
+	}
+	// Construct jobs from details
+	var job *Job
+	for _, segment := range details {
+		job, err = fromDetails(segment)
+		if err != nil {
+			// Nack faulty jobs, then skip
+			_ = nackJob(client, nil, segment.JobId)
+			continue
+		}
+		jobs = append(jobs, job)
+	}
+	return
+}
+
+// NackJob sends an NACK about a job to the queue
+func NackJob(client *disque.DisquePool, id string) (err error) {
+	err = nackJob(client, nil, id)
+	return
+}
+
+// AckJob sends an ACK about a job to the queue
+func AckJob(client *disque.DisquePool, id string) (err error) {
+	err = ackJob(client, nil, id)
 	return
 }
 
