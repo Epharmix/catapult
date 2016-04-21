@@ -27,7 +27,7 @@ go get github.com/Epharmix/catapult
 
 ### Documentation
 
-[View Documentation](https://godoc.org/github.com/bandwidthcom/go-bandwidth)
+[View Documentation](https://godoc.org/github.com/Epharmix/catapult)
 
 ### Usage
 
