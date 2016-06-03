@@ -142,7 +142,7 @@ func (l *Lock) Release() {
 	// Clear the lock
 	conn := l.Client.Get()
 	defer conn.Close()
-	_, _ = extendLock.Do(conn, l.Key, l.value)
+	_, _ = releaseLock.Do(conn, l.Key, l.value)
 	// Clear internal
 	l.value = ""
 	return
